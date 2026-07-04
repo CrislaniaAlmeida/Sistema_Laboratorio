@@ -1,68 +1,55 @@
-import { useEffect, useState } from 'react';
-import api from '../api/axios';
+import { Link, useNavigate, Outlet } from 'react-router-dom';
 
-function Painel() {
-    const [atrasadas, setAtrasadas] = useState([]);
-    const [erro, setErro] = useState('');
-    const [carregando, setCarregando] = useState(true);
+function Layout() {
+    const navigate = useNavigate();
+    const usuario = JSON.parse(localStorage.getItem('usuario') || 'null');
 
-    function carregar() {
-        api.get('/amostras/atrasadas')
-            .then((resposta) => {
-                setAtrasadas(resposta.data);
-                setErro('');
-            })
-            .catch((err) => setErro(err.response?.data?.erro || 'Erro ao buscar amostras atrasadas'))
-            .finally(() => setCarregando(false));
+    function handleLogout() {
+        localStorage.removeItem('token');
+        localStorage.removeItem('usuario');
+        navigate('/');
     }
 
-    useEffect(() => {
-        carregar();
-        const intervalo = setInterval(carregar, 30000); // atualiza a cada 30 segundos
-        return () => clearInterval(intervalo);
-    }, []);
-
     return (
-        <div>
-            <h2>Painel de SLA</h2>
-            <p style={{ fontSize: 13, opacity: 0.7 }}>Atualiza automaticamente a cada 30 segundos</p>
-
-            {erro && <p style={{ color: 'red' }}>{erro}</p>}
-
-            {!carregando && atrasadas.length === 0 && !erro && (
-                <p style={{ color: '#2ecc71', fontWeight: 'bold' }}>✅ Nenhuma amostra atrasada</p>
-            )}
-
-            {atrasadas.length > 0 && (
-                <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-                    <thead>
-                        <tr style={{ textAlign: 'left', borderBottom: '1px solid #555' }}>
-                            <th>Código</th>
-                            <th>Paciente</th>
-                            <th>Exame</th>
-                            <th>Status</th>
-                            <th>Prazo (SLA)</th>
-                            <th>Atraso</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {atrasadas.map((a) => (
-                            <tr key={a.id} style={{ background: '#5c2128', borderBottom: '1px solid #7a2a32' }}>
-                                <td>{a.codigo}</td>
-                                <td>{a.paciente_nome}</td>
-                                <td>{a.exame_nome}</td>
-                                <td>{a.status}</td>
-                                <td>{a.prazo_minutos} min</td>
-                                <td style={{ color: '#ff8a80', fontWeight: 'bold' }}>
-                                    + {a.minutos_decorridos - a.prazo_minutos} min
-                                </td>
-                            </tr>
-                        ))}
-                    </tbody>
-                </table>
-            )}
+        <div style={{ display: 'flex', minHeight: '100vh' }}>
+            <nav style={{ width: 220, padding: '24px 16px', display: 'flex', flexDirection: 'column' }}>
+                <h3 style={{ color: '#fff', fontSize: '1.1rem', marginBottom: 4 }}>🔬 Rastreabilidade</h3>
+                {usuario && (
+                    <p style={{ color: 'rgba(255,255,255,0.7)', fontSize: '0.8rem', marginBottom: 24 }}>
+                        {usuario.nome}<br />{usuario.perfil}
+                    </p>
+                )}
+                <ul style={{ listStyle: 'none', padding: 0, margin: 0, background: 'transparent', boxShadow: 'none' }}>
+                    <li style={{ border: 'none', padding: '4px 0' }}>
+                        <Link to="/pacientes" style={{ color: '#fff', textDecoration: 'none', display: 'block', padding: '8px 12px', borderRadius: 6 }}>
+                            👤 Pacientes
+                        </Link>
+                    </li>
+                    <li style={{ border: 'none', padding: '4px 0' }}>
+                        <Link to="/amostras" style={{ color: '#fff', textDecoration: 'none', display: 'block', padding: '8px 12px', borderRadius: 6 }}>
+                            🧪 Amostras
+                        </Link>
+                    </li>
+                    <li style={{ border: 'none', padding: '4px 0' }}>
+                        <Link to="/exames" style={{ color: '#fff', textDecoration: 'none', display: 'block', padding: '8px 12px', borderRadius: 6 }}>
+                            📋 Exames
+                        </Link>
+                    </li>
+                    <li style={{ border: 'none', padding: '4px 0' }}>
+                        <Link to="/painel" style={{ color: '#fff', textDecoration: 'none', display: 'block', padding: '8px 12px', borderRadius: 6 }}>
+                            ⚠️ Painel de SLA
+                        </Link>
+                    </li>
+                </ul>
+                <div style={{ marginTop: 'auto' }}>
+                    <button onClick={handleLogout}>Sair</button>
+                </div>
+            </nav>
+            <main style={{ flex: 1, padding: 30, background: '#f0f4f8' }}>
+                <Outlet />
+            </main>
         </div>
     );
 }
 
-export default Painel;
+export default Layout;
