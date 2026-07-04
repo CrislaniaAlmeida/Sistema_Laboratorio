@@ -1,0 +1,15 @@
+# Dependências 
+node_modules/
+backend/node_modules/
+frontend/node_modules/
+
+# Variáveis de ambiente (segredos)
+.env
+backend/.env
+frontend/.env
+
+#Build to front-end
+frontend/dist/
+
+# Outros 
+*.log
